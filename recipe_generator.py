@@ -17,26 +17,12 @@ The code is adapted from [Max Woolf](http://minimaxir.com)'s [notebook Train a G
 import gpt_2_simple as gpt2
 from datetime import datetime
 
-# Downloading GPT-2
+# Downloading GPT-2 Model
+#Already downloaded it, don't need to run and resave downloaded "model" file again
+# gpt2.download_gpt2(model_name="124M") 
 
-# gpt2.download_gpt2(model_name="124M")
-
-# gpt2.mount_gdrive()
-
-"""## Uploading a Text File to be Trained to Colaboratory
-
-In the Colaboratory Notebook sidebar on the left of the screen, select *Files*. From there you can upload files:
-
-![alt text](https://i.imgur.com/TGcZT4h.png)
-
-Upload `df_tokenized_with_separator.txt`.
-"""
-
-# file_name = "df_tokenized_with_separator.txt"
-
-# gpt2.copy_file_from_gdrive(file_name)
-
-"""## Finetune GPT-2
+""" 
+Finetune GPT-2
 
 The next cell will start the actual finetuning of GPT-2. It creates a persistent TensorFlow session which stores the training config, then to have the finetuning run indefinitely, set `steps = -1`)
 
@@ -48,7 +34,6 @@ The training might time out after 4ish hours; make sure you end training and sav
 
 Other optional-but-helpful parameters for `gpt2.finetune`:
 
-
 *  **`restore_from`**: Set to `fresh` to start training from the base GPT-2, or set to `latest` to restart training from an existing checkpoint.
 * **`sample_every`**: Number of steps to print example output
 * **`print_every`**: Number of steps to print training progress.
@@ -59,6 +44,7 @@ Other optional-but-helpful parameters for `gpt2.finetune`:
 
 # Runs for approximately 3 hours. Lowest average error reached: 1.32.
 
+# file_name = "df_tokenized_with_separator.txt" #Parsed Dataset you're using for you GPT 
 # sess = gpt2.start_tf_sess()
 
 # gpt2.finetune(sess,
@@ -73,46 +59,29 @@ Other optional-but-helpful parameters for `gpt2.finetune`:
 #               save_every=500
 #               )
 
-# # copy the checkpoint folder to your own Google Drive.
-
-# # gpt2.copy_checkpoint_to_gdrive(run_name='run1')
-
-# """You're done! Feel free to go to the **Generate Text From The Trained Model** section to generate text based on your retrained model.
-
-# ## Load a Trained Model Checkpoint
-
-# Running the next cell will copy the `.rar` checkpoint file from your Google Drive into the Colaboratory VM.
-# """
-
-# # gpt2.copy_checkpoint_from_gdrive(run_name='run1')
-
-# """The next cell will allow you to load the retrained model checkpoint + metadata necessary to generate text.
-
-# **IMPORTANT NOTE:** If you want to rerun this cell, **restart the VM first** (Runtime -> Restart Runtime). You will need to rerun imports but not recopy files.
-# """
-
-sess = gpt2.start_tf_sess()
-gpt2.load_gpt2(sess, run_name='run2')
-
-"""## Generate Text From The Trained Model
-
-After you've trained the model or loaded a retrained model from checkpoint, you can now generate text. `generate` generates a single text from the loaded model.
+"""
+The next cell will allow you to load the retrained model checkpoint + metadata necessary to generate text.
+**IMPORTANT NOTE:** If you want to rerun this cell, **restart the VM first** (Runtime -> Restart Runtime). 
+You will need to rerun imports but not recopy files.
 """
 
-"""If you're creating an API based on your model and need to pass the generated text elsewhere, you can do `text = gpt2.generate(sess, return_as_list=True)[0]`
+sess = gpt2.start_tf_sess()
+gpt2.load_gpt2(sess, run_name='run1')
 
-You can also pass in a `prefix` to the generate function to force the text to start with a given character sequence and generate text from there (good if you add an indicator when the text starts).
+"""
+Generate Text From The Trained Model
+After you've trained the model or loaded a retrained model from checkpoint, you can now generate text. 
+`generate` generates a single text from the loaded model.
 
-You can also generate multiple texts at a time by specifing `nsamples`. Unique to GPT-2, you can pass a `batch_size` to generate multiple samples in parallel, giving a massive speedup (in Colaboratory, set a maximum of 20 for `batch_size`).
+Other optional-but-helpful parameters for gpt2.generate and friends:
 
-Other optional-but-helpful parameters for `gpt2.generate` and friends:
+1) length: Number of tokens to generate (default 1023, the maximum)
+2) temperature: The higher the temperature, the crazier the text (default 0.7, recommended to keep between 0.7 and 1.0)
+3) top_k: Limits the generated guesses to the top k guesses (default 0 which disables the behavior; if the generated output is super crazy, you may want to set top_k=40)
+4) top_p: Nucleus sampling: limits the generated guesses to a cumulative probability. (gets good results on a dataset with top_p=0.9)
+5) truncate: Truncates the input text until a given sequence, excluding that sequence (e.g. if truncate='<|endoftext|>', the returned text will include everything before the first <|endoftext|>). It may be useful to combine this with a smaller length if the input texts are short.
+6) include_prefix: If using truncate and include_prefix=False, the specified prefix will not be included in the returned text.
 
-*  **`length`**: Number of tokens to generate (default 1023, the maximum)
-* **`temperature`**: The higher the temperature, the crazier the text (default 0.7, recommended to keep between 0.7 and 1.0)
-* **`top_k`**: Limits the generated guesses to the top *k* guesses (default 0 which disables the behavior; if the generated output is super crazy, you may want to set `top_k=40`)
-* **`top_p`**: Nucleus sampling: limits the generated guesses to a cumulative probability. (gets good results on a dataset with `top_p=0.9`)
-* **`truncate`**: Truncates the input text until a given sequence, excluding that sequence (e.g. if `truncate='<|endoftext|>'`, the returned text will include everything before the first `<|endoftext|>`). It may be useful to combine this with a smaller `length` if the input texts are short.
-*  **`include_prefix`**: If using `truncate` and `include_prefix=False`, the specified `prefix` will not be included in the returned text.
 """
 
 x = gpt2.generate(sess,
@@ -125,6 +94,8 @@ x = gpt2.generate(sess,
               )
 
 print(x)
+
+
 """# Etcetera
 
 If the notebook has errors (e.g. GPU Sync Fail), force-kill the Colaboratory virtual machine and restart it with the command below:
